@@ -81,11 +81,9 @@ def report_feeds_complete(record):
     time_feed = "AM" if which_feed == 1 else "PM"
 
     for key in record.keys():
-        print(key)
         if key == which_enc:
             all_fed = record[which_enc]
 
-    print(all_fed)
 
     if which_feed == 1:
         if not all_fed:
@@ -101,7 +99,9 @@ def report_feeds_complete(record):
         print(f"{which_enc} are fed for the {time_feed} feed")
 
     record[which_enc] = all_fed
-    print(record)
+    if all_fed == [1,1]:
+        with open('enclosure_fed.csv', 'a') as enclosure_fed_data:
+            enclosure_fed_data.write(f"{which_enc} is fed in the morning and evening")
     return record
 
 
