@@ -70,8 +70,10 @@ def check_in(keeper_id, zoo_info):
 
 def logging_late_check_in(name, msg):
     print(name, msg)
+    write_data = [name, msg]
     with open('late_checkin.csv', 'a') as late_checkin_date:
-        late_checkin_date.write(f"{name} {msg}\n")
+        writer_csv = csv.writer(late_checkin_date)
+        writer_csv.writerow(write_data)
 
 
 def report_feeds_complete(record):
@@ -80,28 +82,21 @@ def report_feeds_complete(record):
     which_feed = int(input("Would this be for the 1. am or 2.pm feed"))
     time_feed = "AM" if which_feed == 1 else "PM"
 
-    for key in record.keys():
-        if key == which_enc:
-            all_fed = record[which_enc]
-
+    if which_enc not in record:
+        record[which_enc] = [0, 0]
 
     if which_feed == 1:
-        if not all_fed:
-            all_fed = [1,0]
-        else:
-            all_fed[0] = 1
+        record[which_enc][0] = 1
         print(f"{which_enc} are fed for the {time_feed} feed")
     else:
-        if not all_fed:
-            all_fed = [0, 1]
-        else:
-            all_fed[1] = 1
+        record[which_enc][1] = 1
         print(f"{which_enc} are fed for the {time_feed} feed")
 
-    record[which_enc] = all_fed
-    if all_fed == [1,1]:
+    if record[which_enc] == [1, 1]:
+        all_fed.append(which_enc)
         with open('enclosure_fed.csv', 'a') as enclosure_fed_data:
-            enclosure_fed_data.write(f"{which_enc} is fed in the morning and evening")
+            csv_writer = csv.writer(enclosure_fed_data)
+            csv_writer.writerow(all_fed)
     return record
 
 
@@ -117,31 +112,34 @@ def main():
     information = zoo_info(True)
     record = {}
     validate_time('')
-    while True:
-        choice = int(input("Zookeeper and enclosure information about feeds\n"
-                           "1. Show zookeeper information for all enclosures \n"
-                           "2. Check a feed time for an animal\n"
-                           "3. Zookeeper check in\n"
-                           "4. Daily report of feeds\n"
-                           "5. Exit\n"))
-        match choice:
-            case 1:
-                zoo_info()
-            case 2:
-                display_times(information)
-            case 3:
-                keeper_id = input("Please enter the zookeeper's id to check in for work")
-                outcome = check_key(keeper_id, information)
-                if outcome == "":
-                    print("No such Id exists, try again")
-                else:
-                    check_in(keeper_id, information)
-            case 4:
-                record = report_feeds_complete(record)
-            case 5:
-                break
-            case _:
-                print("Incorrect choice entered")
+    try:
+        while True:
+            choice = int(input("Zookeeper and enclosure information about feeds\n"
+                               "1. Show zookeeper information for all enclosures \n"
+                               "2. Check a feed time for an animal\n"
+                               "3. Zookeeper check in\n"
+                               "4. Daily report of feeds\n"
+                               "5. Exit\n"))
+            match choice:
+                case 1:
+                    zoo_info()
+                case 2:
+                    display_times(information)
+                case 3:
+                    keeper_id = input("Please enter the zookeeper's id to check in for work")
+                    outcome = check_key(keeper_id, information)
+                    if outcome == "":
+                        print("No such Id exists, try again")
+                    else:
+                        check_in(keeper_id, information)
+                case 4:
+                    record = report_feeds_complete(record)
+                case 5:
+                    break
+                case _:
+                    print("Incorrect choice entered")
+    finally:
+        return
 
 
 if __name__ == '__main__':
