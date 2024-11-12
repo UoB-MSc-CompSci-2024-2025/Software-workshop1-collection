@@ -39,9 +39,6 @@ def flight_schedule(first=False) -> dict:
 def display_flight_time(schedule: dict):
     pilot_id = input("Type the pilot id for the start date/time are you wanting to see?").strip().lower()
     found_pilot = False
-    if not schedule:
-        user_message("The schedule are currently not available!")
-        return
 
     for pilot_details_key, pilot_details in schedule.items():
         if pilot_id == pilot_details_key.lower():
@@ -56,7 +53,7 @@ def display_flight_time(schedule: dict):
 
 def validate_time(check_in_time: str) -> bool:
     try:
-        return bool(datetime.strptime(check_in_time, "%H:%M:%S"))
+        return bool(datetime.strptime(check_in_time, "%H:%M:%S"))  # 12:12:12 -> true / 12 -> Format Exception
     except ValueError:
         print("Invalid time format")
         return False
@@ -114,41 +111,17 @@ def check_for_pilots(pilot_id, schedule: dict):
     return found_pilot
 
 
-def get_flight_id(pilot_ids, schedule: dict):
-    flight_ids = []
-    for pilot_details_key, pilot_details in schedule.items():
-        for pId in pilot_ids:
-            if pId == pilot_details_key.lower():
-                flight_ids.append(pilot_details['flight_id'])
-    return tuple(flight_ids)
-
-
-def get_coordinate(pilot_ids, schedule: dict):
-    coordinate = []
-    for pilot_details_key, pilot_details in schedule.items():
-        for pId in pilot_ids:
-            if pId == pilot_details_key.lower():
-                coordinate.append(pilot_details['coord'])
-    return tuple(coordinate)
-
-
-def get_flight_times(pilot_ids, schedule: dict):
-    flight_times = []
-    for pilot_details_key, pilot_details in schedule.items():
-        for pId in pilot_ids:
-            if pId == pilot_details_key.lower():
-                flight_times.append(pilot_details['start_time'].split()[1])
-    return tuple(flight_times)
-
-
-def detect_conflict(pilot1: str, pilot2: str, schedule: dict):
-    if not check_for_pilots(pilot1, schedule) or not check_for_pilots(pilot2, schedule):
+def detect_conflict(pilot_id1: str, pilot_id2: str, schedule: dict):
+    if not check_for_pilots(pilot_id1, schedule) or not check_for_pilots(pilot_id2, schedule):
         user_message("Sorry, pilot does not exist")
         return
+    elif pilot_id1 == pilot_id2:
+        user_message("Sorry, pilot ids are same")
+        return
 
-    coord1, coord2 = get_coordinate([pilot1, pilot2], schedule)
-    flightId1, flightId2 = get_flight_id([pilot1, pilot2], schedule)
-    start_time1, start_time2 = get_flight_times([pilot1, pilot2], schedule)
+    coord1, coord2 = schedule[pilot_id1]['coord'], schedule[pilot_id2]['coord']
+    flightId1, flightId2 = schedule[pilot_id1]['flight_id'], schedule[pilot_id2]['flight_id']
+    start_time1, start_time2 = schedule[pilot_id1]['start_time'], schedule[pilot_id2]['start_time']
 
     distance = haversine(coord1, coord2)
 
